@@ -133,6 +133,20 @@ func GameAct(c tele.Context) error {
     return nil
 }
 
+func DataEnt(c tele.Context)error{
+    clBk := strings.TrimSpace(c.Callback().Data)
+    data := GetUser(c.Chat().ID)
+    menu_reg, _ := MenuRegion1()
+    switch clBk {
+        case "yes":
+            SetUserState(data, "reg_choo")
+            return c.Edit("Выберите регион", menu_reg)
+        case "no":
+            return c.Delete()
+    }
+    return nil
+}
+
 func ValAction(c tele.Context)error{
     cnt_menu, _ := MenuValCnt()
     chatId := c.Chat().ID
@@ -340,9 +354,9 @@ func LolUser(c tele.Context)error{
                     board = append(board, row)
                     row = []tele.InlineButton{}
                 }
-                    
-            }
                 
+            }
+
             menu.InlineKeyboard = board
             SetUserState(data, "lol_leag")
             return c.Edit("Выберите Лигу:",menu)
@@ -456,7 +470,7 @@ func LolLastMatch(c tele.Context)error{
     
     return c.Edit(
         fmt.Sprintf(
-            "Игра началась: %d\nИгра закончилась: %d\nРежим игры: %s, %s\nПобедила комманда: %s\nПроиграла комманда: %s", resp.StrtTime, resp.EndTime, resp.GmMode, resp.GmType,win,lost,
+            "Игра началась: %d\nИгра закончилась: %d\nРежим игры: %s, %s\nПобедила комманда: %s\nПроиграла комманда: %s", time.Unix(resp.StrtTime, 0).Format("02.01.2006 15:04:05"),time.Unix(resp.EndTime, 0).Format("02.01.2006 15:04:05") , resp.GmMode, resp.GmType,win,lost,
             ), MenuRet(),
     )
     

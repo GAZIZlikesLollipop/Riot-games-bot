@@ -19,6 +19,7 @@ var handlers = map[string]StepHandler{
     "shard_choo": utils.ShardChoo,
     
     "game_act": utils.GameChoo,
+    "data_ent": utils.DataEnt,
     "game_choo": utils.GameAct,
     
     "val_actions": utils.ValAction,
@@ -64,7 +65,8 @@ func main() {
             utils.SetUserState(data, "reg_choo")
             return c.Send("Выберите регион", menu_reg)
         } else {
-            return c.Send("Данные вашего аккаутна уже имеюстя!")
+            utils.SetUserState(data, "data_ent")
+            return c.Send("Данные вашего аккаутна уже имеюстя! Хотите ввести новые?",utils.MenuAlert())
         }
     })
     b.Handle("/getprofile", func(c tele.Context) error {

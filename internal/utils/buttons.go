@@ -28,6 +28,22 @@ func MenuRegion1() (*tele.ReplyMarkup, []tele.InlineButton) {
     return menu, []tele.InlineButton{btn1,btn2,btn3}
 }
 
+func MenuAlert() *tele.ReplyMarkup {
+    yes_btn := tele.InlineButton{
+        Text: "да",
+        Unique: "yes",
+    }
+    no_btn := tele.InlineButton{
+        Text: "нет",
+        Unique: "no",
+    }
+    menu := &tele.ReplyMarkup{}
+    menu.InlineKeyboard = [][]tele.InlineButton{
+        {yes_btn},{no_btn},
+    }
+    return menu
+}
+
 func MenuRegion2() *tele.ReplyMarkup {
     var regionNames = map[string]string{
         "br1":  "Бразилия",
