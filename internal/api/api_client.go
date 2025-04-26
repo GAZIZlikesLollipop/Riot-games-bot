@@ -44,7 +44,7 @@ func GetPuuid(region string, playerName string, playerTag string) string {
 }
 
 func GetValContent(shard string)(ValContent,error){
-    baseUrl := "https://%s.api.riotgames.com/val/content/v1/contents?locale=ru-RU&api_key=%s"
+    baseUrl := "https://%s.api.riotgames.com/val/content/v1/contents?api_key=%s&locale=ru-RU"
     url := fmt.Sprintf(baseUrl,shard,key)
     resp, err := http.Get(url)
     if err != nil{
@@ -53,16 +53,12 @@ func GetValContent(shard string)(ValContent,error){
     }
     defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusOK {
-        log.Println("API вернуло ошибку: ", resp.Status)
-        return ValContent{}, err
-    }
-
     body, err := io.ReadAll(resp.Body)
     if err != nil {
         log.Println("ошибка чтения ответа:", err)
         return ValContent{}, err
     }
+    
     var data ValContent
     err = json.Unmarshal(body, &data)
     if err != nil {
@@ -96,13 +92,22 @@ func GetValStatus(shard string)(ValStatus, error){
         log.Println("Ошибка парсинга данных", err)
         return ValStatus{}, err
     }
+
     return data, nil
 }
 
-func ValRanked(shard string)(ValLead,error){
-    act, _ := GetValContent(shard)
-    baseUrl := "https://%s.api.riotgames.com/val/ranked/v1/leaderboards/by-act/%s?size=100&startIndex=0&api_key=%s"
-    url := fmt.Sprintf(baseUrl,shard,act.ACT[0].ID,key)
+func ValRanked(shard string,plCount int)(ValLead,error){
+    valContent, _ := GetValContent(shard)
+    
+    var actId []string
+    for _, cnt := range valContent.Act {
+        if cnt.Active == true {
+            actId = append(actId, cnt.Id)
+        }
+    }
+    baseUrl := "https://%s.api.riotgames.com/val/ranked/v1/leaderboards/by-act/%s?size=%d&startIndex=0&api_key=%s"
+    
+    url := fmt.Sprintf(baseUrl,shard,actId[len(actId)-2],plCount,key)
     
     resp, err := http.Get(url)
     if err != nil {
@@ -116,7 +121,6 @@ func ValRanked(shard string)(ValLead,error){
         log.Println("Ошибка чтения тела ответа:", err)
         return ValLead{}, err
     }
-    
     var data ValLead
     err = json.Unmarshal(body, &data)
     if err != nil {
@@ -127,7 +131,7 @@ func ValRanked(shard string)(ValLead,error){
 }
 
 //League
-func LolMatchs(puuid string, reg string) ([]string, error) {
+func LolMatchs(puuid string,reg string)([]string, error) {
     baseUrl := "https://%s.api.riotgames.com/lol/match/v5/matches/by-puuid/%s/ids?start=0&count=20&api_key=%s"
     url := fmt.Sprintf(baseUrl, reg, puuid, key)
     

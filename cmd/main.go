@@ -67,7 +67,7 @@ func main() {
             return c.Send("Данные вашего аккаутна уже имеюстя!")
         }
     })
-        b.Handle("/getprofile", func(c tele.Context) error {
+    b.Handle("/getprofile", func(c tele.Context) error {
         userData := utils.GetUser(c.Chat().ID)
         if userData.PUUID == "" {
             return c.Send("Вы не вводили данные, введите их /setprofile")
@@ -79,8 +79,13 @@ func main() {
     b.Handle("/launch", func(c tele.Context) error {
         menu, _ := utils.MenuGame()
         data := utils.GetUser(c.Chat().ID)
-        utils.SetUserState(data, "game_choo")
-        return c.Send("Выберите игру", menu)
+        if strings.TrimSpace(data.PUUID) != "" {
+            utils.SetUserState(data, "game_choo")
+            return c.Send("Выберите игру", menu)
+        } else {
+            return c.Send("Вы не вводили данные, введите их этой командой /setprofile")
+        }
+        return nil
     })
     
     b.Handle(&utils.BackBtn, func(c tele.Context)error{
@@ -99,7 +104,7 @@ func main() {
         data := utils.GetUser(c.Chat().ID)
 
         if handler, exists := handlers[data.STATE];     exists {
-            log.Println("state: ", data.STATE)
+            //log.Println("state: ", data.STATE)
             return handler(c)
         }
 

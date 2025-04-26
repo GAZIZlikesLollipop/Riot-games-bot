@@ -11,23 +11,28 @@ type ErrPuuid struct{
     CODE int `json:"status_code"`
 }
 
-type ValContent struct{
+type ValContent struct {
     VERS string `json:"version"`
     CHAR []ValItem `json:"characters"`
     MAP []ValItem `json:"maps"`
     EQUIP []ValItem `json:"equips"`
     GAME_MODE []ValItem `json:"gameModes"`
-    ACT []ValAct `json:"acts"`
+    Act []ValAct `json:"acts"`
 }
 
-type ValItem struct{
-    NAME string `json:"name"`
+type ValItem struct {
+    Name string `json:"name"`
+    //Local ValLocal `json:"localizedNames"`
 }
+
+// type ValLocal struct {
+//     Name string `json:"ru-RU"`
+// }
 
 type ValAct struct{
-    NAME string `json:"name"`
-    ID string `json:"id"`
-    ACTIVE bool `json:"isActive"`
+    Name string `json:"name"`
+    Id string `json:"id"`
+    Active bool `json:"isActive"`
 }
 
 type ValStatus struct{
@@ -64,11 +69,10 @@ type LeadPlayer struct {
     PlTag string `json:"tagLine"`
     Wins int64 `json:"numberOfWins"`
     LeadRank int64 `json:"leaderboardRank"`
-    RankedRank int64 `json:"rankedRating"`
+    Rating int64 `json:"rankedRating"`
 }
 
-// League
-
+//League
 type Summoner struct {
     TIME int64 `json:"revisionDate"`
     LVL int64 `json:"summonerLevel"`
@@ -212,7 +216,3 @@ type DDragonDt struct {
         CritLvl float64 `json:"critperlevel"`
     } `json:"stats"`
 }
-
-// type LolUtils struct {
-//     Matches []string `json:""`
-// }

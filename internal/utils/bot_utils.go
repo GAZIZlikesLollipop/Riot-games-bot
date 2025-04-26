@@ -50,7 +50,6 @@ func GoBack(user *User) {
     prevState := user.HISTORY[len(user.HISTORY)-1]
     user.HISTORY = user.HISTORY[:len(user.HISTORY)-1]
     user.STATE = prevState
-
 }
 
 func DelMess(c tele.Context)error{
@@ -139,52 +138,71 @@ func ValAction(c tele.Context)error{
     chatId := c.Chat().ID
     data := GetUser(chatId)
     clBk := strings.TrimSpace(c.Callback().Data)
-    response, err := api.GetValContent(data.Shard)
-    if err != nil {
-        log.Println("Ошибка получения контента:", err)
-        return err
-    }
-    serv_response, err := api.GetValStatus(data.Shard)
-    if err != nil {
-        log.Println("Ошибка получения статуса:", err)
-        return err
-    }
-    rank_response, err := api.ValRanked(data.Shard)
-    if err != nil {
-        log.Println("Ошибка получения статуса:", err)
-        return err
-    }
     
     switch clBk {
         case "btn_val2":
-            log.Println("GameAct called") 
+            response, err := api.GetValContent(data.Shard)
+            if err != nil {
+                log.Println("Ошибка получения контента:",err)
+                return err
+            }
             SetUserState(data, "val_cnt")
-            return c.Edit(fmt.Sprintf("версия игры: %s", response.VERS), cnt_menu)
+            return c.Edit(fmt.Sprintf("версия игры: %s",response.VERS),cnt_menu)
         case "btn_val3":
+            serv_response, err := api.GetValStatus(data.Shard)
+            if err != nil {
+                log.Println("Ошибка получения статуса:",err)
+                return err
+            }
             SetUserState(data,"val_serv")
-           if(len(serv_response.INC) > 0){
+            if(len(serv_response.INC) > 0){
                 return c.Edit(fmt.Sprintf("Инцедент в %s, серьезности  %s\n Описание: %s\n Обновленно в %s сейчас %s\n Описание: %s",serv_response.INC[0].CR, serv_response.INC[0].SEVR, serv_response.INC[0].TIT[0].CNT, serv_response.INC[0].UPD[0].UP, serv_response.INC[0].STAT, serv_response.INC[0].UPD[0].CNT),MenuRet())
             }else{
-                return c.Edit("С серверами все впорядке!",MenuRet())
+                return c.Edit("С серверами все впорядке!", MenuRet())
             }
         case "btn_val1":
-            var resp string
+            rank_response, err := api.ValRanked(data.Shard,200)
+            if err != nil {
+                log.Println("Ошибка получения статуса:",err)
+                return err
+            }
+            var found bool
+            resp := ""
             for _, rsp := range rank_response.Players {
                 if(rsp.Puuid == data.PUUID){
-                    resp = fmt.Sprintf("Число побед: %d\nРанк в таблице лидеров: %d\nРпнк в рановом режиме: %d", rsp.Wins,rsp.LeadRank,rsp.RankedRank)
+                    resp = fmt.Sprintf("Число побед: %d\nНомер в таблице лидеров: %d\nОчки ранга: %d",rsp.Wins,rsp.LeadRank,rsp.Rating)
+                    found = true
+                    break
                 }
             }
+            
             SetUserState(data,"val_player")
-            return c.Edit(resp, ValPlayer())
+            if !found {
+                resp = "Не можем найти вас в списке лидеров"
+                return c.Edit(resp,MenuRet())
+            }else{
+                return c.Edit(resp, ValPlayer())
+            }
+            
         case "btn_val4":
+            rank_response, err := api.ValRanked(data.Shard,10)
+            if err != nil {
+                log.Println("Ошибка получения статуса:", err)
+                return err
+            }
+            var resp string
+            resp += "Топ 10 игроков этого сезона\n\n"
+            for _, rnk := range rank_response.Players {
+                resp += fmt.Sprintf("%d. %s#%s\nочки: %d\nпобеды: %d\n\n", rnk.LeadRank,rnk.PlName,rnk.PlTag,rnk.Rating,rnk.Wins)
+            }
             SetUserState(data,"val_ranking")
-            return c.Edit("В разработке", MenuRet())
+            return c.Edit(resp, MenuRet())
     }
     return nil
 }
 
 func ValPlr(c tele.Context)error{
-  //  data := GetUser(c.Chat().ID)
+    //data := GetUser(c.Chat().ID)
     clBk := strings.TrimSpace(c.Callback().Data)
 
     switch clBk {
@@ -211,19 +229,19 @@ func ValCnt(c tele.Context)error{
     switch clBk {
         case "val_cnt1":
             for _, item := range response.CHAR {
-                data.ALL_TEXT = append(data.ALL_TEXT, item.NAME)
+                data.ALL_TEXT = append(data.ALL_TEXT, item.Name)
             }
         case "val_cnt2":
             for _, item := range response.MAP {
-                data.ALL_TEXT = append(data.ALL_TEXT, item.NAME)
+                data.ALL_TEXT = append(data.ALL_TEXT, item.Name)
             }
         case "val_cnt4":
             for _, item := range response.EQUIP {
-                data.ALL_TEXT = append(data.ALL_TEXT, item.NAME)
+                data.ALL_TEXT = append(data.ALL_TEXT, item.Name)
             }
         case "val_cnt5":
             for _, item := range response.GAME_MODE {
-                data.ALL_TEXT = append(data.ALL_TEXT, item.NAME)
+                data.ALL_TEXT = append(data.ALL_TEXT, item.Name)
             }
     }
     
